@@ -37,8 +37,9 @@ fn build() -> Result<()> {
         .name;
 
     // Building the binary
-    let build_path = target_path.join(TARGET).join("debug").join(name);
+    let build_path = target_path.join(TARGET).join("release").join(name);
     BuildCommand::new()
+        .release()
         .target_with_linker(TARGET, LINKER)
         .exec()?;
 

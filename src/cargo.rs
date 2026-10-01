@@ -39,7 +39,7 @@ impl BuildCommand {
         command.arg("build");
 
         if self.release {
-            command.arg("release");
+            command.arg("--release");
         }
 
         if let Some((target, linker)) = &self.target {

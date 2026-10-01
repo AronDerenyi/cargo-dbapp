@@ -1,0 +1,15 @@
+[package]
+name = "cargo-dbapp"
+version = "0.1.0"
+authors = ["Aron Derenyi-Kubany"]
+edition = "2024"
+repository = "https://github.com/AronDerenyi/cargo-dbapp"
+license = "MIT"
+description = "builds and bundles the project as databricks app"
+keywords = ["build", "databricks"]
+categories = ["command-line-utilities", "development-tools::build-utils", "development-tools::cargo-plugins"]
+
+[dependencies]
+anyhow = "1.0.104"
+cargo_metadata = "0.23.1"
+clap = { version = "4.6.7", features = ["derive"] }

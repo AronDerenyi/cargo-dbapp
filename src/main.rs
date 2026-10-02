@@ -15,8 +15,8 @@ const LINKER: &str = "rust-lld";
 const APP_YAML_CONTENT: &str = "command: ['sh', 'start.sh']\n";
 const START_SH_CONTENT: &str = r#"#!/bin/sh
 DIR="$(cd "$(dirname "$0")" && pwd)"
-chmod +x "$BIN/bin"
-exec "$BIN/bin"
+chmod +x "$DIR/bin"
+exec "$DIR/bin"
 "#;
 
 fn main() -> Result<()> {

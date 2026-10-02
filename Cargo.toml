@@ -1,6 +1,6 @@
 [package]
 name = "cargo-dbapp"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Aron Derenyi-Kubany"]
 edition = "2024"
 repository = "https://github.com/AronDerenyi/cargo-dbapp"

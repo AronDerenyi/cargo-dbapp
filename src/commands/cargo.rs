@@ -4,9 +4,15 @@ use anyhow::Result;
 
 pub struct BuildCommand {
     release: bool,
-    target: Option<(String, Option<String>)>,
+    target: Option<Target>,
 }
 
+struct Target {
+    name: String,
+    linker: Option<String>,
+}
+
+#[allow(unused)]
 impl BuildCommand {
     pub fn new() -> Self {
         BuildCommand {
@@ -21,7 +27,10 @@ impl BuildCommand {
     }
 
     pub fn target(&mut self, target: impl AsRef<str>) -> &mut Self {
-        self.target = Some((target.as_ref().into(), None));
+        self.target = Some(Target {
+            name: target.as_ref().into(),
+            linker: None,
+        });
         self
     }
 
@@ -30,7 +39,10 @@ impl BuildCommand {
         target: impl AsRef<str>,
         linker: impl AsRef<str>,
     ) -> &mut Self {
-        self.target = Some((target.as_ref().into(), Some(linker.as_ref().into())));
+        self.target = Some(Target {
+            name: target.as_ref().into(),
+            linker: Some(linker.as_ref().into()),
+        });
         self
     }
 
@@ -42,7 +54,11 @@ impl BuildCommand {
             command.arg("--release");
         }
 
-        if let Some((target, linker)) = &self.target {
+        if let Some(Target {
+            name: target,
+            linker,
+        }) = &self.target
+        {
             command.args(["--target", target]);
 
             if let Some(linker) = linker {
@@ -60,5 +76,3 @@ impl BuildCommand {
         Ok(())
     }
 }
-
-pub fn cargo_build() {}

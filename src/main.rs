@@ -1,25 +1,21 @@
 mod args;
 mod commands;
+mod metadata;
+mod yaml;
 
 use crate::{
     args::{Cmd, parse_args},
     commands::{cargo::BuildCommand, databricks::AppsRunLocalCommand},
+    metadata::{env_vars, root_package_name},
+    yaml::{AppExecutionType, app_yaml},
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use cargo_metadata::MetadataCommand;
 use std::{fs, io::Write};
 use tempfile::NamedTempFile;
 
 const TARGET: &str = "x86_64-unknown-linux-musl";
 const LINKER: &str = "rust-lld";
-
-const RUN_APP_YML_CONTENT: &str = "command: ['cargo', 'run']\n";
-const BUILD_APP_YML_CONTENT: &str = "command: ['sh', 'start.sh']\n";
-const START_SH_CONTENT: &str = r#"#!/bin/sh
-DIR="$(cd "$(dirname "$0")" && pwd)"
-chmod +x "$DIR/bin"
-exec "$DIR/bin"
-"#;
 
 fn main() -> Result<()> {
     let args = parse_args();
@@ -31,8 +27,11 @@ fn main() -> Result<()> {
 }
 
 fn run() -> Result<()> {
+    let metadata = MetadataCommand::new().no_deps().exec()?;
+    let env_vars = env_vars(&metadata);
+
     let mut app_yml_path = NamedTempFile::new()?;
-    app_yml_path.write_all(RUN_APP_YML_CONTENT.as_bytes())?;
+    app_yml_path.write_all(app_yaml(AppExecutionType::LOCAL, env_vars)?.as_bytes())?;
 
     AppsRunLocalCommand::new()
         .entry_point(&app_yml_path)
@@ -46,10 +45,8 @@ fn build() -> Result<()> {
     // Getting metadata
     let metadata = MetadataCommand::new().no_deps().exec()?;
     let target_path = &metadata.target_directory;
-    let name = &*metadata
-        .root_package()
-        .context("run inside a package")?
-        .name;
+    let name = root_package_name(&metadata)?;
+    let env_vars = env_vars(&metadata);
 
     // Building the binary
     let build_path = target_path.join(TARGET).join("release").join(name);
@@ -64,11 +61,18 @@ fn build() -> Result<()> {
     fs::create_dir_all(&databricks_dir)?;
 
     // Clopying the built binary to the databricks folder
-    fs::copy(build_path, databricks_dir.join("bin"))?;
+    fs::copy(build_path, databricks_dir.join(name))?;
 
     // Writing the app.yaml and build.sh
-    fs::write(databricks_dir.join("app.yml"), BUILD_APP_YML_CONTENT)?;
-    fs::write(databricks_dir.join("start.sh"), START_SH_CONTENT)?;
+    fs::write(
+        databricks_dir.join("app.yml"),
+        app_yaml(
+            AppExecutionType::SHELL {
+                binary: name.into(),
+            },
+            env_vars,
+        )?,
+    )?;
 
     Ok(())
 }

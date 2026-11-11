@@ -31,7 +31,7 @@ fn run() -> Result<()> {
     let env_vars = env_vars(&metadata);
 
     let mut app_yml_path = NamedTempFile::new()?;
-    app_yml_path.write_all(app_yaml(AppExecutionType::LOCAL, env_vars)?.as_bytes())?;
+    app_yml_path.write_all(app_yaml(AppExecutionType::Local, env_vars)?.as_bytes())?;
 
     AppsRunLocalCommand::new()
         .entry_point(&app_yml_path)
@@ -67,7 +67,7 @@ fn build() -> Result<()> {
     fs::write(
         databricks_dir.join("app.yml"),
         app_yaml(
-            AppExecutionType::SHELL {
+            AppExecutionType::Shell {
                 binary: name.into(),
             },
             env_vars,

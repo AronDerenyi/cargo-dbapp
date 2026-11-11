@@ -3,8 +3,8 @@ use indexmap::IndexMap;
 use serde::Serialize;
 
 pub enum AppExecutionType {
-    LOCAL,
-    SHELL { binary: String },
+    Local,
+    Shell { binary: String },
 }
 
 pub fn app_yaml(
@@ -13,8 +13,8 @@ pub fn app_yaml(
 ) -> Result<String> {
     let config = AppConfig {
         command: match app_execution_type {
-            AppExecutionType::LOCAL => &["cargo", "run"],
-            AppExecutionType::SHELL { binary } => &[
+            AppExecutionType::Local => &["cargo", "run"],
+            AppExecutionType::Shell { binary } => &[
                 "sh",
                 "-c",
                 &format!("chmod +x ./{binary} && exec ./{binary}"),
